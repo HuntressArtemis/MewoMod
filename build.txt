@@ -1,0 +1,3 @@
+displayName = Mewo Mod
+author = Artemis
+version = 0.1

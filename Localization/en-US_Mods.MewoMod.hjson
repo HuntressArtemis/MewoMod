@@ -1,0 +1,47 @@
+# This file will automatically update with entries for new content after a build and reload.
+
+Items: {
+	MewoSword: {
+		DisplayName: Mewo Sword
+		Tooltip:
+			'''
+			The holy sword of lord mewo
+			...
+			mewo!
+			'''
+	}
+
+	CatFood: {
+		DisplayName: Cat Food
+		Tooltip: The food of lord mewo
+	}
+
+	Mewings: {
+		DisplayName: Mewings
+		Tooltip: Not to be confused with mewing
+	}
+
+	MewOre: {
+		DisplayName: Mew Ore
+		Tooltip: "'Filled with the essence of a thousand cats'"
+	}
+
+	MewoBar: {
+		DisplayName: Mewo Bar
+		Tooltip: "'Filled with the essence of a thousand cats'"
+	}
+}
+
+Buffs: {
+	MewoPilled: {
+		DisplayName: Mewo Pilled
+		Description: Gives you the strength of mewo (+5 regen, +200% damage)
+	}
+}
+
+Tiles.MewOreTile.MapEntry: MewOre
+
+WorldGen: {
+	MewOrePassMessage: Mods.MewoMod.WorldGen.MewOrePassMessage
+	BlessedWithMewOreMessage: Mods.MewoMod.WorldGen.BlessedWithMewOreMessage
+}

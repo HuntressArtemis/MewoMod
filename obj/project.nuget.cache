@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "HsfRvHlK5+M=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Beheerder\\Documents\\My Games\\Terraria\\tModLoader\\ModSources\\MewoMod\\MewoMod.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Beheerder\\.nuget\\packages\\tmodloader.codeassist\\0.1.5\\tmodloader.codeassist.0.1.5.nupkg.sha512"
+  ],
+  "logs": []
+}
