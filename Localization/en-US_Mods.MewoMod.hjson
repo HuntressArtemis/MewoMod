@@ -5,7 +5,7 @@ Items: {
 		DisplayName: Mewo Sword
 		Tooltip:
 			'''
-			The holy sword of lord mewo
+			The holy sword of Lord Mewo
 			...
 			mewo!
 			'''
@@ -13,7 +13,7 @@ Items: {
 
 	CatFood: {
 		DisplayName: Cat Food
-		Tooltip: The food of lord mewo
+		Tooltip: The food of Lord Mewo
 	}
 
 	Mewings: {
@@ -29,6 +29,35 @@ Items: {
 	MewoBar: {
 		DisplayName: Mewo Bar
 		Tooltip: "'Filled with the essence of a thousand cats'"
+	}
+
+	MewoBreastplate: {
+		DisplayName: Mewo Breastplate
+		Tooltip:
+			'''
+			Covered by the scales of Lord Mewo, you feel strengthened.
+			{$CommonItemTooltip.PercentIncreasedMovementSpeed}
+			{$CommonItemTooltip.PercentIncreasedDamage@1}
+			'''
+	}
+
+	MewoLeggings: {
+		DisplayName: Mewo Leggings
+		Tooltip:
+			'''
+			Something deep inside of you wants to make cat noises.
+			{$CommonItemTooltip.PercentIncreasedMovementSpeed}
+			'''
+	}
+
+	MewoHelmet: {
+		DisplayName: Mewo Helmet
+		Tooltip:
+			'''
+			It almost feels like it's sending cat noises directly into your brain.
+			{$CommonItemTooltip.PercentIncreasedMeleeSpeed}
+			'''
+		SetBonus: "{$CommonItemTooltip.PercentIncreasedDamage}"
 	}
 }
 
