@@ -12,11 +12,11 @@ using Terraria.ModLoader;
 using MewoMod.Content.Items.Consumables;
 using MewoMod.Content.Tiles;
 
-namespace MewoMod.Content.NPCs.MewoBoss
+namespace MewoMod.Content.NPCs.LordMewo
 {
 	// The main part of the boss, usually referred to as "body"
 	[AutoloadBossHead] // This attribute looks for a texture called "ClassName_Head_Boss" and automatically registers it as the NPC boss head icon
-	public class MewoBossBody : ModNPC
+	public class LordMewo : ModNPC
 	{
 		// This boss has a second phase and we want to give it a second boss head icon, this variable keeps track of the registered texture from Load().
 		// It is applied in the BossHeadSlot hook when the boss is in its second stage
@@ -85,10 +85,10 @@ namespace MewoMod.Content.NPCs.MewoBoss
 
 		public override void SetDefaults() {
 			NPC.width = 168;
-			NPC.height = 126;
-			NPC.damage = 12;
+			NPC.height = 100;
+			NPC.damage = 30;
 			NPC.defense = 10;
-			NPC.lifeMax = 2000;
+			NPC.lifeMax = 6000;
 			NPC.HitSound = SoundID.NPCHit1;
 			NPC.DeathSound = SoundID.NPCDeath1;
 			NPC.knockBackResist = 0f;
@@ -229,6 +229,7 @@ namespace MewoMod.Content.NPCs.MewoBoss
 				// These gores work by simply existing as a texture inside any folder which path contains "Gores/"
 				int backGoreType = Mod.Find<ModGore>("MewoBossBody_Back").Type;
 				int frontGoreType = Mod.Find<ModGore>("MewoBossBody_Front").Type;
+				
 
 				var entitySource = NPC.GetSource_Death();
 
@@ -321,7 +322,7 @@ namespace MewoMod.Content.NPCs.MewoBoss
 				return;
 			}
 
-			if (NPC.life < NPC.lifeMax * 0.5f) {
+			if (NPC.life < NPC.lifeMax * 0.75f) {
 				// If the boss is half hp, we initiate the second stage, and notify other players that this NPC has reached its second stage
 				// by setting NPC.netUpdate to true in this tick. It will send important data like position, velocity and the NPC.ai[] array to all connected clients
 
@@ -394,46 +395,81 @@ namespace MewoMod.Content.NPCs.MewoBoss
 
 			NPC.rotation = NPC.velocity.ToRotation() - MathHelper.PiOver2;
 		}
-
+		float rotationTimer;
+		int SecondStagetimer;
 		private void DoSecondStage(Player player) {
-			if (NPC.life < NPC.lifeMax * 0.5f) {
+			SecondStageTimer++;
+			if (Main.expertMode && NPC.life < NPC.lifeMax * 0.33f) {
+				SecondStageTimer++;
+			}
+
+			float rotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.33f, 0.66f) / 0.66f;
+			//Increment rotationtimer so it takes 3 seconds (180 ticks) to complete a full circle/reach 2pi (times 1 at the start, times 0.5 at 33%health)
+			rotationTimer += MathHelper.TwoPi / 180f;
+
+			if (rotationTimer > MathHelper.TwoPi) {
+				rotationTimer -= MathHelper.TwoPi;
+			}
+
+			if (NPC.life < NPC.lifeMax * 0.75f) {
 				ApplySecondStageBuffImmunities();
 			}
 
-			Vector2 toPlayer = player.Center - NPC.Center;
 
-			float offsetX = 200f;
 
-			Vector2 abovePlayer = player.Top + new Vector2(NPC.direction * offsetX, -NPC.height);
+			Vector2 ToPlayer = player.Center - NPC.Center;
+			//Vector2 ToPlayerNormalized = ToPlayer.SafeNormalize(Vector2.UnitY);
 
-			Vector2 toAbovePlayer = abovePlayer - NPC.Center;
-			Vector2 toAbovePlayerNormalized = toAbovePlayer.SafeNormalize(Vector2.UnitY);
+			float r = 500f;
+			float CenterX = player.Center.X;
+			float CenterY = player.Center.Y;
 
-			// The NPC tries to go towards the offsetX position, but most likely it will never get there exactly, or close to if the player is moving
-			// This checks if the npc is "70% there", and then changes direction
-			float changeDirOffset = offsetX * 0.7f;
+			float NextX = CenterX + r * (float)Math.Cos(rotationTimer);
+			float NextY = CenterY + r * (float)Math.Sin(rotationTimer);
 
-			if (NPC.direction == -1 && NPC.Center.X - changeDirOffset < abovePlayer.X ||
-				NPC.direction == 1 && NPC.Center.X + changeDirOffset > abovePlayer.X) {
-				NPC.direction *= -1;
+			Vector2 NextPosition = new Vector2(NextX, NextY);
+			Vector2 ToNextPosition = NextPosition - NPC.Center;
+			Vector2 ToNextPositionNormalized = ToNextPosition.SafeNormalize(Vector2.UnitY);
+
+			NPC.velocity = ToNextPositionNormalized * 8f / rotationSpeed;
+
+
+
+
+
+
+
+
+			var entitySource = NPC.GetSource_FromAI();
+			if (SecondStageTimer % 60 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				Projectile.NewProjectile(entitySource, NPC.Center, ToPlayer, ProjectileID.DD2BetsyFireball, 30, 5f, Main.myPlayer);
 			}
 
-			float speed = 8f;
-			float inertia = 40f;
+			// // The NPC tries to go towards the offsetX position, but most likely it will never get there exactly, or close to if the player is moving
+			// // This checks if the npc is "70% there", and then changes direction
+			// float changeDirOffset = offsetX * 0.7f;
 
-			// If the boss is somehow below the player, move faster to catch up
-			if (NPC.Top.Y > player.Bottom.Y) {
-				speed = 12f;
-			}
+			// if (NPC.direction == -1 && NPC.Center.X - changeDirOffset < abovePlayer.X ||
+			// 	NPC.direction == 1 && NPC.Center.X + changeDirOffset > abovePlayer.X) {
+			// 	NPC.direction *= -1;
+			// }
 
-			Vector2 moveTo = toAbovePlayerNormalized * speed;
-			NPC.velocity = (NPC.velocity * (inertia - 1) + moveTo) / inertia;
+			// float speed = 8f;
+			// float inertia = 40f;
+
+			// // If the boss is somehow below the player, move faster to catch up
+			// if (NPC.Top.Y > player.Bottom.Y) {
+			// 	speed = 12f;
+			// }
+
+			// Vector2 moveTo = toAbovePlayerNormalized * speed;
+			// NPC.velocity = (NPC.velocity * (inertia - 1) + moveTo) / inertia;
 
 			NPC.damage = NPC.defDamage;
 
 			NPC.alpha = 0;
 
-			NPC.rotation = toPlayer.ToRotation() - MathHelper.PiOver2;
+			NPC.rotation = ToPlayer.ToRotation() - MathHelper.PiOver2;
 		}
 
 		// private void DoSecondStage_SpawnEyes(Player player) {

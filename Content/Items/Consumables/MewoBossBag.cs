@@ -1,4 +1,4 @@
-using MewoMod.Content.NPCs.MewoBoss;
+using MewoMod.Content.NPCs.LordMewo;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
@@ -36,7 +36,7 @@ namespace MewoMod.Content.Items.Consumables
 			// We have to replicate the expert drops from MinionBossBody here
 
 			itemLoot.Add(ItemDropRule.Common(ModContent.ItemType<Placeables.MewoBar>(), 1, 12, 16));
-			itemLoot.Add(ItemDropRule.CoinsBasedOnNPCValue(ModContent.NPCType<MewoBossBody>()));
+			itemLoot.Add(ItemDropRule.CoinsBasedOnNPCValue(ModContent.NPCType<LordMewo>()));
 		}
 	}
 }

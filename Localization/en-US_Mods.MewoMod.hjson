@@ -76,8 +76,11 @@ Buffs: {
 Tiles.MewOreTile.MapEntry: MewOre
 
 WorldGen: {
-	MewOrePassMessage: Mods.MewoMod.WorldGen.MewOrePassMessage
-	BlessedWithMewOreMessage: Mods.MewoMod.WorldGen.BlessedWithMewOreMessage
+	MewOrePassMessage: MewOres
+	BlessedWithMewOreMessage: Your World has been blessed with MewOre!
 }
 
-NPCs.MewoBossBody.DisplayName: Mewo Boss Body
+NPCs: {
+	MewoBossBody.DisplayName: Mewo Boss Body
+	LordMewo.DisplayName: Lord Mewo
+}
