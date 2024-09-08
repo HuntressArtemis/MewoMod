@@ -31,8 +31,8 @@ namespace MewoMod.Content.Items.Armor
 		// Please see Content/ExampleRecipes.cs for a detailed explanation of recipe creation.
 		public override void AddRecipes() {
 			CreateRecipe()
-                .AddIngredient(ModContent.ItemType<Items.Placeables.MewoBar>(), 15)
-				.AddTile(TileID.WorkBenches)
+                .AddIngredient(ModContent.ItemType<Placeables.MewoBar>(), 15)
+				.AddTile(TileID.Anvils)
 				.Register();
 		}
 	}

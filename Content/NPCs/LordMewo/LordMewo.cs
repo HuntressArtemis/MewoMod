@@ -11,6 +11,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using MewoMod.Content.Items.Consumables;
 using MewoMod.Content.Tiles;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MewoMod.Content.NPCs.LordMewo
 {
@@ -88,7 +89,7 @@ namespace MewoMod.Content.NPCs.LordMewo
 			NPC.height = 100;
 			NPC.damage = 30;
 			NPC.defense = 10;
-			NPC.lifeMax = 6000;
+			NPC.lifeMax = 3500;
 			NPC.HitSound = SoundID.NPCHit1;
 			NPC.DeathSound = SoundID.NPCDeath1;
 			NPC.knockBackResist = 0f;
@@ -397,10 +398,14 @@ namespace MewoMod.Content.NPCs.LordMewo
 		}
 		float rotationTimer;
 		int SecondStagetimer;
+		int ShotCounter;
+		bool Dashing;
+		int DashTimer;
 		private void DoSecondStage(Player player) {
 			SecondStageTimer++;
-			if (Main.expertMode && NPC.life < NPC.lifeMax * 0.33f) {
-				SecondStageTimer++;
+
+			if (Dashing) {
+				DashTimer++;
 			}
 
 			float rotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.33f, 0.66f) / 0.66f;
@@ -418,7 +423,7 @@ namespace MewoMod.Content.NPCs.LordMewo
 
 
 			Vector2 ToPlayer = player.Center - NPC.Center;
-			//Vector2 ToPlayerNormalized = ToPlayer.SafeNormalize(Vector2.UnitY);
+			Vector2 ToPlayerNormalized = ToPlayer.SafeNormalize(Vector2.UnitY);
 
 			float r = 500f;
 			float CenterX = player.Center.X;
@@ -431,19 +436,63 @@ namespace MewoMod.Content.NPCs.LordMewo
 			Vector2 ToNextPosition = NextPosition - NPC.Center;
 			Vector2 ToNextPositionNormalized = ToNextPosition.SafeNormalize(Vector2.UnitY);
 
-			NPC.velocity = ToNextPositionNormalized * 8f / rotationSpeed;
-
-
-
-
-
-
-
-
-			var entitySource = NPC.GetSource_FromAI();
-			if (SecondStageTimer % 60 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				Projectile.NewProjectile(entitySource, NPC.Center, ToPlayer, ProjectileID.DD2BetsyFireball, 30, 5f, Main.myPlayer);
+			//only circle if not dashing
+			if (Dashing != true) {
+				NPC.velocity = ToNextPositionNormalized * 8f / rotationSpeed;
 			}
+
+			
+
+
+
+
+
+
+
+			//Shooting projectiles
+			var entitySource = NPC.GetSource_FromAI();
+			//if classic
+			if (!Main.expertMode && SecondStageTimer % 90 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				ShotCounter++;
+				if (ShotCounter < 4) {
+					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayer, ProjectileID.DD2BetsyFireball, 15, 5f, Main.myPlayer);
+				}
+			}
+			//if expert and life above 40%
+			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.4f && SecondStageTimer % 90 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				ShotCounter++;
+				if (ShotCounter < 4) {
+					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayer, ProjectileID.DD2BetsyFireball, 15, 5f, Main.myPlayer);
+				}
+			}
+			//if expert and life above 20% and below 40%
+			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.2f && NPC.life < NPC.lifeMax * 0.4f && SecondStageTimer % 75 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				ShotCounter++;
+				if (ShotCounter < 4) {
+					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayer, ProjectileID.DD2BetsyFireball, 15, 5f, Main.myPlayer);
+				}
+			}
+			//if expert and life below 20%
+			else if (Main.expertMode && NPC.life < NPC.lifeMax * 0.2f && SecondStageTimer % 45 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				ShotCounter++;
+				if (ShotCounter < 4) {
+					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayer, ProjectileID.DD2BetsyFireball, 15, 5f, Main.myPlayer);
+				}
+			}
+
+			//Dashing
+			if (ShotCounter == 4) {
+				ShotCounter = 0;
+				Dashing = true;
+				NPC.velocity = ToPlayerNormalized * 12;
+			}
+
+			if (DashTimer == 60) {
+				Dashing = false;
+				DashTimer = 0;
+			}
+
+
 
 			// // The NPC tries to go towards the offsetX position, but most likely it will never get there exactly, or close to if the player is moving
 			// // This checks if the npc is "70% there", and then changes direction
@@ -464,10 +513,6 @@ namespace MewoMod.Content.NPCs.LordMewo
 
 			// Vector2 moveTo = toAbovePlayerNormalized * speed;
 			// NPC.velocity = (NPC.velocity * (inertia - 1) + moveTo) / inertia;
-
-			NPC.damage = NPC.defDamage;
-
-			NPC.alpha = 0;
 
 			NPC.rotation = ToPlayer.ToRotation() - MathHelper.PiOver2;
 		}
