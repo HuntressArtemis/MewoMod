@@ -59,6 +59,11 @@ Items: {
 			'''
 		SetBonus: "{$CommonItemTooltip.PercentIncreasedDamage}"
 	}
+
+	MewoBossBag: {
+		Tooltip: ""
+		DisplayName: Mewo Boss Bag
+	}
 }
 
 Buffs: {
@@ -74,3 +79,5 @@ WorldGen: {
 	MewOrePassMessage: Mods.MewoMod.WorldGen.MewOrePassMessage
 	BlessedWithMewOreMessage: Mods.MewoMod.WorldGen.BlessedWithMewOreMessage
 }
+
+NPCs.MewoBossBody.DisplayName: Mewo Boss Body
