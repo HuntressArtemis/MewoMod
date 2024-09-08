@@ -108,7 +108,7 @@ namespace MewoMod.Content.NPCs.MewoBoss
 
 			// The following code assigns a music track to the boss in a simple way.
 			if (!Main.dedServ) {
-				Music = MusicLoader.GetMusicSlot(Mod, "Assets/Music/Melody OST SynthOnly");
+				Music = MusicLoader.GetMusicSlot(Mod, "Assets/Music/MewoBossMusic");
 			}
 		}
 
@@ -232,10 +232,10 @@ namespace MewoMod.Content.NPCs.MewoBoss
 
 				var entitySource = NPC.GetSource_Death();
 
-				for (int i = 0; i < 2; i++) {
-					Gore.NewGore(entitySource, NPC.position, new Vector2(Main.rand.Next(-6, 7), Main.rand.Next(-6, 7)), backGoreType);
-					Gore.NewGore(entitySource, NPC.position, new Vector2(Main.rand.Next(-6, 7), Main.rand.Next(-6, 7)), frontGoreType);
-				}
+				
+				Gore.NewGore(entitySource, NPC.position, new Vector2(Main.rand.Next(-6, 7), Main.rand.Next(-6, 7)), backGoreType);
+				Gore.NewGore(entitySource, NPC.position, new Vector2(Main.rand.Next(-6, 7), Main.rand.Next(-6, 7)), frontGoreType);
+				
 
 				SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
 
