@@ -64,6 +64,16 @@ Items: {
 		Tooltip: ""
 		DisplayName: Mewo Boss Bag
 	}
+
+	LordMewoTreasureBag: {
+		DisplayName: Lord Mewo Treasure Bag
+		Tooltip: "{$CommonItemTooltip.RightClickToOpen}"
+	}
+
+	LordMewoRelic: {
+		DisplayName: Lord Mewo Relic
+		Tooltip: ""
+	}
 }
 
 Buffs: {
@@ -83,4 +93,7 @@ WorldGen: {
 NPCs: {
 	MewoBossBody.DisplayName: Mewo Boss Body
 	LordMewo.DisplayName: Lord Mewo
+	SupremeMewo.DisplayName: Supreme Mewo
 }
+
+Projectiles.LordMewoProjectile.DisplayName: Lord Mewo Projectile

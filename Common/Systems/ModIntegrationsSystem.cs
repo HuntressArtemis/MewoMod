@@ -49,7 +49,7 @@ namespace MewoMod.Common.Systems
 			string internalName = "LordMewo";
 
 			// Value inferred from boss progression, see the wiki for details
-			float weight = 0.7f;
+			float weight = 4.5f;
 
 			// Used for tracking checklist progress
 			Func<bool> downed = () => DownedBossSystem.DownedMewoBoss;

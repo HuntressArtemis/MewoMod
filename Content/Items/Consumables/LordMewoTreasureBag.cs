@@ -7,7 +7,7 @@ using Terraria.ModLoader;
 namespace MewoMod.Content.Items.Consumables
 {
 	// Basic code for a boss treasure bag
-	public class MewoBossBag : ModItem
+	public class LordMewoTreasureBag : ModItem
 	{
 		public override void SetStaticDefaults() {
 			// This set is one that every boss bag should have.

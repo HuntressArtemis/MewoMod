@@ -10,12 +10,10 @@ namespace MewoMod.Content.Tiles
 	public class MewoBarTile : ModTile
 	{
 
-        public override void SetStaticDefaults() {
-			Main.tileShine2[Type] = true; 
+        public override void SetStaticDefaults() { 
 			Main.tileShine[Type] = 975; 
 			Main.tileSolid[Type] = true;
-			Main.tileBlockLight[Type] = true;
-
+			Main.tileSolidTop[Type] = true;
             Main.tileFrameImportant[Type] = true;
 
 			AddMapEntry(new Color(188, 0, 204), Language.GetText("MapObject.MetalBar"));

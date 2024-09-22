@@ -1,3 +1,4 @@
+using MewoMod.Content.Projectiles;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -8,7 +9,7 @@ namespace MewoMod.Content.Items.Weapons
 	{
 		public override void SetDefaults()
 		{
-			Item.damage = 5;
+			Item.damage = 300000;
 			Item.DamageType = DamageClass.Melee;
 			Item.width = 40;
 			Item.height = 40;

@@ -12,11 +12,11 @@ using Terraria.ModLoader;
 using MewoMod.Content.Items.Consumables;
 using MewoMod.Content.Tiles;
 
-namespace MewoMod.Content.NPCs.LordMewo
+namespace MewoMod.Content.NPCs.SupremeMewo
 {
 	// The main part of the boss, usually referred to as "body"
 	[AutoloadBossHead] // This attribute looks for a texture called "ClassName_Head_Boss" and automatically registers it as the NPC boss head icon
-	public class LordMewo : ModNPC
+	public class SupremeMewo : ModNPC
 	{
 
 		// This code here is called a property: It acts like a variable, but can modify other things. In this case it uses the NPC.ai[] array that has four entries.
@@ -59,7 +59,6 @@ namespace MewoMod.Content.NPCs.LordMewo
 
 
 		public override void SetStaticDefaults() {
-			Main.npcFrameCount[Type] = 2;
 
 			// Add this in for bosses that have a summon item, requires corresponding code in the item (See MinionBossSummonItem.cs)
 			NPCID.Sets.MPAllowedEnemies[Type] = true;
@@ -195,25 +194,25 @@ namespace MewoMod.Content.NPCs.LordMewo
 			return true;
 		}
 
-		public override void FindFrame(int frameHeight) {
-			// This NPC animates with a simple "go from start frame to final frame, and loop back to start frame" rule
-			// In this case: First stage: 0-1-2-0-1-2, Second stage: 3-4-5-3-4-5, 5 being "total frame count - 1"
-			int startFrame = 0;
-			int finalFrame = 1;
+		// public override void FindFrame(int frameHeight) {
+		// 	// This NPC animates with a simple "go from start frame to final frame, and loop back to start frame" rule
+		// 	// In this case: First stage: 0-1-2-0-1-2, Second stage: 3-4-5-3-4-5, 5 being "total frame count - 1"
+		// 	int startFrame = 0;
+		// 	int finalFrame = 1;
 			
 
 
-			int frameSpeed = 15;
-			NPC.frameCounter += 0.5f;
-			if (NPC.frameCounter > frameSpeed) {
-				NPC.frameCounter = 0;
-				NPC.frame.Y += frameHeight;
+		// 	int frameSpeed = 15;
+		// 	NPC.frameCounter += 0.5f;
+		// 	if (NPC.frameCounter > frameSpeed) {
+		// 		NPC.frameCounter = 0;
+		// 		NPC.frame.Y += frameHeight;
 
-				if (NPC.frame.Y > finalFrame * frameHeight) {
-					NPC.frame.Y = startFrame * frameHeight;
-				}
-			}
-		}
+		// 		if (NPC.frame.Y > finalFrame * frameHeight) {
+		// 			NPC.frame.Y = startFrame * frameHeight;
+		// 		}
+		// 	}
+		// }
 
 		public override void HitEffect(NPC.HitInfo hit) {
 			// If the NPC dies, spawn gore and play a sound
@@ -270,48 +269,7 @@ namespace MewoMod.Content.NPCs.LordMewo
 			}
 		}
 
-		// private void SpawnMinions() {
-		// 	if (SpawnedMinions) {
-		// 		// No point executing the code in this method again
-		// 		return;
-		// 	}
 
-		// 	SpawnedMinions = true;
-
-		// 	if (Main.netMode == NetmodeID.MultiplayerClient) {
-		// 		// Because we want to spawn minions, and minions are NPCs, we have to do this on the server (or singleplayer, "!= NetmodeID.MultiplayerClient" covers both)
-		// 		// This means we also have to sync it after we spawned and set up the minion
-		// 		return;
-		// 	}
-
-		// 	int count = MinionCount();
-		// 	var entitySource = NPC.GetSource_FromAI();
-
-		// 	MinionMaxHealthTotal = 0;
-		// 	for (int i = 0; i < count; i++) {
-		// 		NPC minionNPC = NPC.NewNPCDirect(entitySource, (int)NPC.Center.X, (int)NPC.Center.Y, ModContent.NPCType<MinionBossMinion>(), NPC.whoAmI);
-		// 		if (minionNPC.whoAmI == Main.maxNPCs)
-		// 			continue; // spawn failed due to spawn cap
-
-		// 		// Now that the minion is spawned, we need to prepare it with data that is necessary for it to work
-		// 		// This is not required usually if you simply spawn NPCs, but because the minion is tied to the body, we need to pass this information to it
-		// 		MinionBossMinion minion = (MinionBossMinion)minionNPC.ModNPC;
-		// 		minion.ParentIndex = NPC.whoAmI; // Let the minion know who the "parent" is
-		// 		minion.PositionOffset = i / (float)count; // Give it a separate position offset
-
-		// 		MinionMaxHealthTotal += minionNPC.lifeMax; // add the total minion life for boss bar shield text
-
-		// 		// Finally, syncing, only sync on server and if the NPC actually exists (Main.maxNPCs is the index of a dummy NPC, there is no point syncing it)
-		// 		if (Main.netMode == NetmodeID.Server) {
-		// 			NetMessage.SendData(MessageID.SyncNPC, number: minionNPC.whoAmI);
-		// 		}
-		// 	}
-
-		// 	// sync MinionMaxHealthTotal
-		// 	if (Main.netMode == NetmodeID.Server) {
-		// 		NetMessage.SendData(MessageID.SyncNPC, number: NPC.whoAmI);
-		// 	}
-		// }
 
 		private void CheckSecondStage() {
 			if (SecondStage) {
@@ -319,7 +277,7 @@ namespace MewoMod.Content.NPCs.LordMewo
 				return;
 			}
 
-			if (NPC.life < NPC.lifeMax * 0.75f) {
+			if (NPC.life < NPC.lifeMax * 0.7f) {
 				// If the boss is half hp, we initiate the second stage, and notify other players that this NPC has reached its second stage
 				// by setting NPC.netUpdate to true in this tick. It will send important data like position, velocity and the NPC.ai[] array to all connected clients
 
@@ -423,7 +381,13 @@ namespace MewoMod.Content.NPCs.LordMewo
 				if (Main.rand.NextBool(6)) {
 					ClockWise = !ClockWise;
 					NPC.netUpdate = true;
+
+
 				}
+            
+            if (SecondStageTimer % 600 == 0) {
+                
+            }
 
 			}
 
