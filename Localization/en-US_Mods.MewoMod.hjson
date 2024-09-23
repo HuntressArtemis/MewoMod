@@ -96,4 +96,11 @@ NPCs: {
 	SupremeMewo.DisplayName: Supreme Mewo
 }
 
-Projectiles.LordMewoProjectile.DisplayName: Lord Mewo Projectile
+Projectiles: {
+	LordMewoProjectile.DisplayName: Lord Mewo Projectile
+
+	Boss: {
+		DoGDeath.DisplayName: Do G Death
+		SupremeMewoBeam.DisplayName: Supreme Mewo Beam
+	}
+}

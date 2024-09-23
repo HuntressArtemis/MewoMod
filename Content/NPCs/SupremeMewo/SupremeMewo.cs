@@ -11,6 +11,8 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using MewoMod.Content.Items.Consumables;
 using MewoMod.Content.Tiles;
+using System.Net.Mail;
+using System.Collections.Specialized;
 
 namespace MewoMod.Content.NPCs.SupremeMewo
 {
@@ -47,8 +49,6 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 		// Auto-implemented property, acts exactly like a variable by using a hidden backing field
 		public Vector2 LastFirstStageDestination { get; set; } = Vector2.Zero;
 
-		private const int FirstStageTimerMax = 90;
-		// This is a reference property. It lets us write FirstStageTimer as if it's NPC.localAI[1], essentially giving it our own name
 		public ref float FirstStageTimer => ref NPC.localAI[1];
 
 		// We could also repurpose FirstStageTimer since it's unused in the second stage, or write "=> ref FirstStageTimer", but then we have to reset the timer when the state switch happens
@@ -82,9 +82,26 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 		public override void SetDefaults() {
 			NPC.width = 168;
 			NPC.height = 100;
-			NPC.damage = 30;
-			NPC.defense = 10;
-			NPC.lifeMax = 3500;
+			NPC.defense = 65;
+			NPC.lifeMax = 70000;
+			NPC.damage = 120;
+
+
+
+			// if (!Main.expertMode) {
+				
+			// }
+			// else if (!Main.masterMode) {
+			// 	NPC.lifeMax = 48000;
+			// 	NPC.damage = 85;
+			// }
+			// else {
+			// 	NPC.lifeMax = 45000;
+			// 	NPC.damage = 150;
+			// }
+				
+			
+			
 			NPC.HitSound = SoundID.NPCHit1;
 			NPC.DeathSound = SoundID.NPCDeath1;
 			NPC.knockBackResist = 0f;
@@ -108,7 +125,14 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			}
 		}
 
-		public override void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry) {
+        public override void ApplyDifficultyAndPlayerScaling(int numPlayers, float balance, float bossAdjustment)
+        {
+            NPC.lifeMax = (int)(NPC.lifeMax * 0.8f * balance * bossAdjustment);
+            NPC.damage = (int)(NPC.damage * balance * bossAdjustment);
+        }
+
+
+        public override void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry) {
 			// Sets the description of this NPC that is listed in the bestiary
 			bestiaryEntry.Info.AddRange(new List<IBestiaryInfoElement> {
 				new MoonLordPortraitBackgroundProviderBestiaryInfoElement(), // Plain black background
@@ -236,11 +260,12 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 
 				SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
 
-				// This adds a screen shake (screenshake) similar to Deerclops
-				PunchCameraModifier modifier = new PunchCameraModifier(NPC.Center, (Main.rand.NextFloat() * ((float)Math.PI * 2f)).ToRotationVector2(), 20f, 6f, 20, 1000f, FullName);
+				// This adds a screen shake
+				PunchCameraModifier modifier = new PunchCameraModifier(NPC.Center, (Main.rand.NextFloat() * ((float)Math.PI * 2f)).ToRotationVector2(), 30f, 4f, 80, 1000f, FullName);
 				Main.instance.CameraModifiers.Add(modifier);
 			}
 		}
+
 
 		public override void AI() {
 			// This should almost always be the first code in AI() as it is responsible for finding the proper player target
@@ -277,7 +302,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 				return;
 			}
 
-			if (NPC.life < NPC.lifeMax * 0.7f) {
+			if (NPC.life < NPC.lifeMax * 0.6f) {
 				// If the boss is half hp, we initiate the second stage, and notify other players that this NPC has reached its second stage
 				// by setting NPC.netUpdate to true in this tick. It will send important data like position, velocity and the NPC.ai[] array to all connected clients
 
@@ -286,19 +311,75 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 				NPC.netUpdate = true;
 			}
 		}
+		int PredictiveBeams = 0;
+		int attack = 0;
 
 		private void DoFirstStage(Player player) {
 			// Each time the timer is 0, pick a random position a fixed distance away from the player but towards the opposite side
 			// The NPC moves directly towards it with fixed speed, while displaying its trajectory as a telegraph
 
 			FirstStageTimer++;
-			if (FirstStageTimer > FirstStageTimerMax) {
-				FirstStageTimer = 0;
+
+			float distance = 400; // Distance in pixels behind the player
+
+
+			int type = ModContent.ProjectileType<Projectiles.SupremeMewoBeam>();
+			int BeamDistance = 1000;
+			int BeamSpeed = 30;
+			Vector2 toPlayer = player.Center - NPC.Center;
+			Vector2 toPlayerNormalized = toPlayer.SafeNormalize(Vector2.UnitY);
+
+			Vector2[] Directions = {new Vector2 (0, -1), new Vector2 (1, -1), new Vector2 (1, 0), new Vector2 (1, -1), new Vector2 (0, -1), new Vector2 (-1, -1), new Vector2 (-1, 0), new Vector2 (-1, 1)};
+
+
+			// shoots laser things every 5 seconds
+			if (FirstStageTimer % 300 == 0 && attack == 0) {
+				foreach (Vector2 direction in Directions) {
+					if (!Main.expertMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer);
+					}
+					else if (!Main.masterMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.5), 5f, Main.myPlayer);
+					}
+					else {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer);
+					}
+	
+				}
+			}                     
+
+			if (FirstStageTimer % 300 == 0 && attack == 1) {
+				PredictiveBeams = 15;
+			} 
+
+			if (FirstStageTimer % 300 == 0) {
+				attack ++;
+				if (attack > 1) {
+					attack = 0;
+				}
 			}
+						
 
-			float distance = 200; // Distance in pixels behind the player
+			if (PredictiveBeams > 0) {
+				if (!Main.expertMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Normalize(player.Center + player.velocity * 60f - NPC.Center) * BeamSpeed, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer);
+					}
+					else if (!Main.masterMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Normalize(player.Center + player.velocity * 60f - NPC.Center) * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.5), 5f, Main.myPlayer);
+					}
+					else {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Normalize(player.Center + player.velocity * 60f - NPC.Center) * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer);
+					}
+	
+				PredictiveBeams--;
+			}
+				
+			
 
-			if (FirstStageTimer == 0) {
+
+
+
+			if (FirstStageTimer % 45 == 0) {
 				Vector2 fromPlayer = NPC.Center - player.Center;
 
 				if (Main.netMode != NetmodeID.MultiplayerClient) {
@@ -330,7 +411,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			Vector2 toDestinationNormalized = toDestination.SafeNormalize(Vector2.UnitY);
 
 			float speed = Math.Min(distance, toDestination.Length());
-			NPC.velocity = toDestinationNormalized * speed / 30;
+			NPC.velocity = toDestinationNormalized * speed / 27f;
 
 			if (FirstStageDestination != LastFirstStageDestination) {
 				// If destination changed
@@ -359,7 +440,10 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 		bool Dashing;
 		int DashTimer;
 		bool ClockWise = true;
-		float r = 300f;
+		float r = 500f;
+		bool DashAttack = false;
+		bool DashPause = false;
+		int DashPauseTimer = 0;
 		// bool MovingCloser = true;
 		private void DoSecondStage(Player player) {
 			SecondStageTimer++;
@@ -370,35 +454,69 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			// else {
 			// 	r++;
 			// }
+
+			Vector2 ToPlayer = player.Center - NPC.Center;
+			Vector2 ToPlayerNormalized = ToPlayer.SafeNormalize(Vector2.UnitY);
 			
 
 			if (Dashing) {
 				DashTimer++;
 			}
-			
+
+			if (DashAttack && NPC.position.Y > player.position.Y - 50f && NPC.position.Y < player.position.Y + 50f) {
+				DashAttack = false;
+				DashPause = true;
+				DashPauseTimer = 20;
+				NPC.netUpdate = true;
+			}
+
+			if (DashPause) {
+				DashPauseTimer--;
+				if (DashPauseTimer <= 0) {
+					DashPause = false;
+					Dashing = true;
+
+					if (NPC.position.X > player.position.X) {
+						NPC.velocity = new Vector2(-1, 0) * 30f;
+					}
+					else if (NPC.position.X < player.position.X) {
+						NPC.velocity = new Vector2(1, 0) * 30f;
+					}
+					
+					NPC.netUpdate = true;
+				}
+			}
 			//1 in 6 chance to turn around every second
 			if (SecondStageTimer % 60 == 0) {
 				if (Main.rand.NextBool(6)) {
 					ClockWise = !ClockWise;
 					NPC.netUpdate = true;
-
-
 				}
             
-            if (SecondStageTimer % 600 == 0) {
-                
-            }
 
 			}
 
-			float RotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.5f, 0.75f) / 0.75f;
+			float RotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.4f, 0.75f);
+
+			if (DashAttack) {
+				RotationSpeed = 0.3f;
+			}
 			//Increment rotationtimer so it takes 3 seconds (180 ticks) to complete a full circle/reach 2pi (times 1 at the start, times 0.5 at 33%health)
 			//takes ClockWise variable into account
 
-			if (ClockWise && !Dashing) {
+
+			if (DashPause) {
+				if (NPC.position.X > player.position.X) {
+					rotationTimer = MathHelper.TwoPi;
+				}
+				else if (NPC.position.X < player.position.X) {
+					rotationTimer = MathHelper.Pi;
+				}
+			}
+			else if (ClockWise && !Dashing) {
 				rotationTimer += MathHelper.TwoPi / (180f * RotationSpeed);
 			}
-			if (!ClockWise && !Dashing) {
+			else if (!ClockWise && !Dashing) {
 				rotationTimer -= MathHelper.TwoPi / (180f * RotationSpeed);
 			}
 			
@@ -414,26 +532,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			if (NPC.life < NPC.lifeMax * 0.75f) {
 				ApplySecondStageBuffImmunities();
 			}
-
-			// if (r == 500f) {
-			// 	MovingCloser = true;
-			// 	NPC.netUpdate = true;
-			// }
-			// else if (r == 200f) {
-			// 	MovingCloser = false;
-			// 	NPC.netUpdate = true;
-			// }
-
-			Vector2 ToPlayer = player.Center - NPC.Center;
-			Vector2 ToPlayerNormalized = ToPlayer.SafeNormalize(Vector2.UnitY);
-
-
-			
-
-			//float DistanceToCircle = Math.Abs(ToPlayer.Length() - r);
-
-			
-			
+	
 
 			
 			Vector2 NextPosition = player.Center + new Vector2((float)Math.Cos(rotationTimer) * r, (float)Math.Sin(rotationTimer) * r);
@@ -442,7 +541,12 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			Vector2 ToNextPositionNormalized = ToNextPosition.SafeNormalize(Vector2.UnitY);
 			//only circle if not dashing
 			if (Dashing != true) {
-				NPC.velocity = ToNextPositionNormalized * (8f / RotationSpeed);
+				if (ToNextPosition.Length() <= 20f) {
+					NPC.velocity = ToNextPositionNormalized * (8f / RotationSpeed) * ToNextPosition.Length() / 20f;
+				}
+				else {
+					NPC.velocity = ToNextPositionNormalized * (8f / RotationSpeed);
+				}
 			}
 
 
@@ -454,20 +558,70 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 				rotationTimer = ToNPCRotation;
 			}
 
+			int type = ModContent.ProjectileType<Projectiles.SupremeMewoBeam>();
+			int BeamDistance = 1000;
+			int BeamSpeed = 30;
+
+			Vector2[] Directions = {new Vector2 (0, -1), new Vector2 (1, -1), new Vector2 (1, 0), new Vector2 (1, -1), new Vector2 (0, -1), new Vector2 (-1, -1), new Vector2 (-1, 0), new Vector2 (-1, 1)};
+
+
+			// shoots laser things every 2.5 seconds
+			if (SecondStageTimer % 150 == 0 && attack == 0 ) {
+				foreach (Vector2 direction in Directions) {
+					if (!Main.expertMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer);
+					}
+					else if (!Main.masterMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.5), 5f, Main.myPlayer);
+					}
+					else {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer);
+					}
+				}
+			}
+			if (SecondStageTimer % 150 == 0 && attack == 1) {
+				PredictiveBeams = 15;
+			}
+
+			if (SecondStageTimer % 150 == 0 && attack == 2) {
+				DashAttack = true;
+				NPC.netUpdate = true;
+			}
+
+			if (SecondStageTimer % 150 == 0) {
+				attack++;
+				if (attack > 2) {
+					attack = 0;
+				}
+			}
+
+			
+
+
+			
+			if (PredictiveBeams > 0) {
+				if (!Main.expertMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Normalize(player.Center + player.velocity * 60f - NPC.Center) * BeamSpeed, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer);
+					}
+					else if (!Main.masterMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Normalize(player.Center + player.velocity * 60f - NPC.Center) * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.5), 5f, Main.myPlayer);
+					}
+					else {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Normalize(player.Center + player.velocity * 60f - NPC.Center) * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer);
+					}
+	
+				PredictiveBeams--;
+			}
+				
+			
+
+			
+
 			
 
 			
 
 
-
-
-
-
-
-		
-
-
-			
 
 
 
@@ -479,69 +633,57 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			var entitySource = NPC.GetSource_FromAI();
 			//if classic
 			if (!Main.expertMode && SecondStageTimer % 90 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				ShotCounter++;
+				//ShotCounter++;
 				if (ShotCounter < 4) {
-					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 7.5f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), 15, 5f, Main.myPlayer);
+					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5), 5f, Main.myPlayer);
 				}
 			}
 			//if expert and life above 40%
-			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.4f && SecondStageTimer % 90 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				ShotCounter++;
+			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.4f && SecondStageTimer % 60 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				//ShotCounter++;
 				if (ShotCounter < 4) {
-					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 7.5f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), 15, 5f, Main.myPlayer);
+					if (Main.masterMode) {
+						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.33), 5f, Main.myPlayer);
+					}
+					else {
+						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.5), 5f, Main.myPlayer);
+					}
 				}
 			}
 			//if expert and life above 20% and below 40%
-			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.2f && NPC.life < NPC.lifeMax * 0.4f && SecondStageTimer % 75 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				ShotCounter++;
+			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.2f && NPC.life < NPC.lifeMax * 0.4f && SecondStageTimer % 50 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				//ShotCounter++;
 				if (ShotCounter < 4) {
-					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 7.5f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), 15, 5f, Main.myPlayer);
+					if (Main.masterMode) {
+						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.33), 5f, Main.myPlayer);
+					}
+					else {
+						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.5), 5f, Main.myPlayer);
+					}
 				}
 			}
 			//if expert and life below 20%
-			else if (Main.expertMode && NPC.life < NPC.lifeMax * 0.2f && SecondStageTimer % 45 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				ShotCounter++;
+			else if (Main.expertMode && NPC.life < NPC.lifeMax * 0.2f && SecondStageTimer % 30 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
+				//ShotCounter++;
 				if (ShotCounter < 4) {
-					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 7.5f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), 15, 5f, Main.myPlayer);
+					if (Main.masterMode) {
+						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.33), 5f, Main.myPlayer);
+					}
+					else {
+						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.5), 5f, Main.myPlayer);
+					}
 				}
 			}
 
 			//Dashing
-			if (ShotCounter == 4) {
-				ShotCounter = 0;
-				Dashing = true;
-				NPC.velocity = ToPlayerNormalized * 15f;
-				rotationTimer += MathHelper.Pi;
-				NPC.netUpdate = true;
-			}
 
-			if (DashTimer == 50) {
+			if (DashTimer == 60) {
 				Dashing = false;
 				DashTimer = 0;
 				NPC.netUpdate = true;
 			}
 
 
-
-			// // The NPC tries to go towards the offsetX position, but most likely it will never get there exactly, or close to if the player is moving
-			// // This checks if the npc is "70% there", and then changes direction
-			// float changeDirOffset = offsetX * 0.7f;
-
-			// if (NPC.direction == -1 && NPC.Center.X - changeDirOffset < abovePlayer.X ||
-			// 	NPC.direction == 1 && NPC.Center.X + changeDirOffset > abovePlayer.X) {
-			// 	NPC.direction *= -1;
-			// }
-
-			// float speed = 8f;
-			// float inertia = 40f;
-
-			// // If the boss is somehow below the player, move faster to catch up
-			// if (NPC.Top.Y > player.Bottom.Y) {
-			// 	speed = 12f;
-			// }
-
-			// Vector2 moveTo = toAbovePlayerNormalized * speed;
-			// NPC.velocity = (NPC.velocity * (inertia - 1) + moveTo) / inertia;
 
 			
 			NPC.rotation = ToPlayer.ToRotation() - MathHelper.PiOver2;
@@ -552,30 +694,6 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			
 		}
 
-		// private void DoSecondStage_SpawnEyes(Player player) {
-		// 	// At 100% health, spawn every 90 ticks
-		// 	// Drops down until 33% health to spawn every 30 ticks
-		// 	float timerMax = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.33f, 1f) * 90;
-
-		// 	SecondStageTimer_SpawnEyes++;
-		// 	if (SecondStageTimer_SpawnEyes > timerMax) {
-		// 		SecondStageTimer_SpawnEyes = 0;
-		// 	}
-
-		// 	if (NPC.HasValidTarget && SecondStageTimer_SpawnEyes == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-		// 		// Spawn projectile randomly below player, based on horizontal velocity to make kiting harder, starting velocity 1f upwards
-		// 		// (The projectiles accelerate from their initial velocity)
-
-		// 		float kitingOffsetX = Utils.Clamp(player.velocity.X * 16, -100, 100);
-		// 		Vector2 position = player.Bottom + new Vector2(kitingOffsetX + Main.rand.Next(-100, 100), Main.rand.Next(50, 100));
-
-		// 		int type = ModContent.ProjectileType<MinionBossEye>();
-		// 		int damage = NPC.damage / 2;
-		// 		var entitySource = NPC.GetSource_FromAI();
-
-		// 		Projectile.NewProjectile(entitySource, position, -Vector2.UnitY, type, damage, 0f, Main.myPlayer);
-		// 	}
-		// }
 
 		private void ApplySecondStageBuffImmunities() {
 			if (NPC.buffImmune[BuffID.OnFire]) {
