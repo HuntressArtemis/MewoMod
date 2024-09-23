@@ -11,8 +11,8 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using MewoMod.Content.Items.Consumables;
 using MewoMod.Content.Tiles;
-using System.Net.Mail;
-using System.Collections.Specialized;
+using MewoMod.Content.Projectiles;
+
 
 namespace MewoMod.Content.NPCs.SupremeMewo
 {
@@ -444,24 +444,32 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 		bool DashAttack = false;
 		bool DashPause = false;
 		int DashPauseTimer = 0;
-		// bool MovingCloser = true;
+		
 		private void DoSecondStage(Player player) {
 			SecondStageTimer++;
 
-			// if (MovingCloser) {
-			// 	r--;
-			// }
-			// else {
-			// 	r++;
-			// }
 
 			Vector2 ToPlayer = player.Center - NPC.Center;
 			Vector2 ToPlayerNormalized = ToPlayer.SafeNormalize(Vector2.UnitY);
 			
 
+			//dash attack (with lordmewoprojectile)
 			if (Dashing) {
 				DashTimer++;
+				if (!Main.expertMode && DashTimer % 6 == 0) {
+					Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<LordMewoProjectile>(), (int)(NPC.damage * 0.4), 5f, Main.myPlayer, 60f, 10f);
+					}
+				else if (Main.expertMode && DashTimer % 3 == 0) {
+					
+				    if (!Main.masterMode) {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<LordMewoProjectile>(), (int)(NPC.damage * 0.4 * 0.5), 5f, Main.myPlayer, 45f, 12f);
+					}
+					else {
+						Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<LordMewoProjectile>(), (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer, 45f, 14f);
+					}
+				}
 			}
+
 
 			if (DashAttack && NPC.position.Y > player.position.Y - 50f && NPC.position.Y < player.position.Y + 50f) {
 				DashAttack = false;
@@ -496,13 +504,14 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 
 			}
 
-			float RotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.4f, 0.75f);
+			//change rotationspeed with lifemax.
+			float RotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.3f, 0.6f) / 0.8f;
 
+
+			// dashing
 			if (DashAttack) {
 				RotationSpeed = 0.3f;
 			}
-			//Increment rotationtimer so it takes 3 seconds (180 ticks) to complete a full circle/reach 2pi (times 1 at the start, times 0.5 at 33%health)
-			//takes ClockWise variable into account
 
 
 			if (DashPause) {
@@ -518,6 +527,12 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			}
 			else if (!ClockWise && !Dashing) {
 				rotationTimer -= MathHelper.TwoPi / (180f * RotationSpeed);
+			}
+
+			if (DashTimer == 60) {
+				Dashing = false;
+				DashTimer = 0;
+				NPC.netUpdate = true;
 			}
 			
 
@@ -558,7 +573,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 				rotationTimer = ToNPCRotation;
 			}
 
-			int type = ModContent.ProjectileType<Projectiles.SupremeMewoBeam>();
+			int type = ModContent.ProjectileType<SupremeMewoBeam>();
 			int BeamDistance = 1000;
 			int BeamSpeed = 30;
 
@@ -613,78 +628,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 				PredictiveBeams--;
 			}
 				
-			
-
-			
-
-			
-
-			
-
-
-
-
-
-
-
-
-
-			//Shooting projectiles
-			var entitySource = NPC.GetSource_FromAI();
-			//if classic
-			if (!Main.expertMode && SecondStageTimer % 90 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				//ShotCounter++;
-				if (ShotCounter < 4) {
-					Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5), 5f, Main.myPlayer);
-				}
-			}
-			//if expert and life above 40%
-			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.4f && SecondStageTimer % 60 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				//ShotCounter++;
-				if (ShotCounter < 4) {
-					if (Main.masterMode) {
-						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.33), 5f, Main.myPlayer);
-					}
-					else {
-						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.5), 5f, Main.myPlayer);
-					}
-				}
-			}
-			//if expert and life above 20% and below 40%
-			else if (Main.expertMode && NPC.life > NPC.lifeMax * 0.2f && NPC.life < NPC.lifeMax * 0.4f && SecondStageTimer % 50 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				//ShotCounter++;
-				if (ShotCounter < 4) {
-					if (Main.masterMode) {
-						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.33), 5f, Main.myPlayer);
-					}
-					else {
-						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.5), 5f, Main.myPlayer);
-					}
-				}
-			}
-			//if expert and life below 20%
-			else if (Main.expertMode && NPC.life < NPC.lifeMax * 0.2f && SecondStageTimer % 30 == 0 && Main.netMode != NetmodeID.MultiplayerClient) {
-				//ShotCounter++;
-				if (ShotCounter < 4) {
-					if (Main.masterMode) {
-						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.33), 5f, Main.myPlayer);
-					}
-					else {
-						Projectile.NewProjectile(entitySource, NPC.Center, ToPlayerNormalized * 12f, ModContent.ProjectileType<Projectiles.LordMewoProjectile>(), (int)(NPC.damage * 0.5 * 0.5), 5f, Main.myPlayer);
-					}
-				}
-			}
-
-			//Dashing
-
-			if (DashTimer == 60) {
-				Dashing = false;
-				DashTimer = 0;
-				NPC.netUpdate = true;
-			}
-
-
-
+		
 			
 			NPC.rotation = ToPlayer.ToRotation() - MathHelper.PiOver2;
 

@@ -7,19 +7,17 @@ namespace MewoMod.Content.Projectiles
 {
 	public class LordMewoProjectile : ModProjectile
 	{
-		// Store the target NPC using Projectile.ai[0]
+		// Store the target NPC using Projectile.ai[2]
 		private Player HomingTarget {
-			get => Projectile.ai[0] == 0 ? null : Main.player[(int)Projectile.ai[0] - 1];
+			get => Projectile.ai[2] == 0 ? null : Main.player[(int)Projectile.ai[2] - 1];
 			set {
-				Projectile.ai[0] = value == null ? 0 : value.whoAmI + 1;
+				Projectile.ai[2] = value == null ? 0 : value.whoAmI + 1;
 			}
 		}
 
-		public ref float DelayTimer => ref Projectile.ai[1];
+		
 
-        public override void SetStaticDefaults() {
 
-        }
 
 		public override void SetDefaults() {
 			Projectile.width = 14; // The width of projectile hitbox
@@ -30,16 +28,47 @@ namespace MewoMod.Content.Projectiles
 			Projectile.ignoreWater = true; // Does the projectile's speed be influenced by water?
 			Projectile.light = 1f; // How much light emit around the projectile
 			Projectile.timeLeft = 600; // The live time for the projectile (60 = 1 second, so 600 is 10 seconds)
+
+			
+
 		}
 
 		// Custom AI
-        int HomingTimer;
+        
+		bool HasStartTimer;
+		int HomingTimer;
+		float DelayTimer = 0f;
+		int MaxHomingTimer = 60;
+	
+
 		public override void AI() {
+
+			if (Projectile.ai[0] != 0) {	
+				if (HasStartTimer == false) {
+					HomingTimer -= (int)Projectile.ai[0];
+					MaxHomingTimer += 60;
+				}
+
+				Projectile.velocity = Vector2.Zero;
+				Projectile.ai[0]--;
+				HasStartTimer = true;
+				Mod.Logger.Info("StartTimer: " + Projectile.ai[0]);
+
+				Projectile.netUpdate = true;
+			}
+
+
+			if (HasStartTimer && Projectile.ai[0] == 0) {
+				Projectile.velocity = Vector2.Normalize(HomingTarget.Center - Projectile.Center) * Projectile.ai[1];
+				HasStartTimer = false;
+			}
+
 			float maxDetectRadius = 1000f; // The maximum radius at which a projectile can detect a target
 
 			// A short delay to homing behavior after being fired
 			if (DelayTimer < 10) {
 				DelayTimer += 1;
+				Projectile.netUpdate = true;
 				return;
 			}
 
@@ -56,10 +85,10 @@ namespace MewoMod.Content.Projectiles
 			// If found, we rotate the projectile velocity in the direction of the target.
 			// We only rotate by 3 degrees an update to give it a smooth trajectory. Increase the rotation speed here to make tighter turns
 
-            if (HomingTimer < 60) {
+            if (HomingTimer < MaxHomingTimer) {
                 float length = Projectile.velocity.Length();
                 float targetAngle = Projectile.AngleTo(HomingTarget.Center);
-                Projectile.velocity = Projectile.velocity.ToRotation().AngleTowards(targetAngle, MathHelper.ToRadians(3)).ToRotationVector2() * length;
+                Projectile.velocity = Projectile.velocity.ToRotation().AngleTowards(targetAngle, MathHelper.ToRadians(1.5f)).ToRotationVector2() * length;
                 Projectile.rotation = Projectile.velocity.ToRotation();
             }
             HomingTimer++;
