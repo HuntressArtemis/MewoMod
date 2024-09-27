@@ -12,6 +12,7 @@ using Terraria.ModLoader;
 using MewoMod.Content.Items.Consumables;
 using MewoMod.Content.Tiles;
 using MewoMod.Content.Projectiles;
+using Microsoft.Build.Evaluation;
 
 
 namespace MewoMod.Content.NPCs.SupremeMewo
@@ -312,7 +313,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			}
 		}
 		int PredictiveBeams = 0;
-		int attack = 0;
+		int attack1 = 0;
 
 		private void DoFirstStage(Player player) {
 			// Each time the timer is 0, pick a random position a fixed distance away from the player but towards the opposite side
@@ -333,7 +334,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 
 
 			// shoots laser things every 5 seconds
-			if (FirstStageTimer % 300 == 0 && attack == 0) {
+			if (FirstStageTimer % 300 == 0 && attack1 == 0) {
 				foreach (Vector2 direction in Directions) {
 					if (!Main.expertMode) {
 						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer);
@@ -348,14 +349,14 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 				}
 			}                     
 
-			if (FirstStageTimer % 300 == 0 && attack == 1) {
+			if (FirstStageTimer % 300 == 0 && attack1 == 1) {
 				PredictiveBeams = 15;
 			} 
 
 			if (FirstStageTimer % 300 == 0) {
-				attack ++;
-				if (attack > 1) {
-					attack = 0;
+				attack1 ++;
+				if (attack1 > 1) {
+					attack1 = 0;
 				}
 			}
 						
@@ -444,9 +445,18 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 		bool DashAttack = false;
 		bool DashPause = false;
 		int DashPauseTimer = 0;
+		bool UShapeAttack = false;
+		int ProjectileProgression;
+		int UShapeDirection;
+		int AttackTimer = 60;
+		int AttackCounter = 0;
+		String attack2;
+		String[] AttackList = {"laser", "predictive", "ushape", "dash", "predictive", "laser", "dash", "ushape", "predictive", "dash", "ushape"};
 		
+
 		private void DoSecondStage(Player player) {
 			SecondStageTimer++;
+			AttackTimer--;
 
 
 			Vector2 ToPlayer = player.Center - NPC.Center;
@@ -505,12 +515,12 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			}
 
 			//change rotationspeed with lifemax.
-			float RotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.3f, 0.6f) / 0.8f;
+			float RotationSpeed = Utils.Clamp((float)NPC.life / NPC.lifeMax, 0.4f, 0.65f) / 0.5f;
 
 
 			// dashing
 			if (DashAttack) {
-				RotationSpeed = 0.3f;
+				RotationSpeed = 0.5f;
 			}
 
 
@@ -557,10 +567,10 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			//only circle if not dashing
 			if (Dashing != true) {
 				if (ToNextPosition.Length() <= 20f) {
-					NPC.velocity = ToNextPositionNormalized * (8f / RotationSpeed) * ToNextPosition.Length() / 20f;
+					NPC.velocity = ToNextPositionNormalized * 20f * ToNextPosition.Length() / 20f / RotationSpeed;
 				}
 				else {
-					NPC.velocity = ToNextPositionNormalized * (8f / RotationSpeed);
+					NPC.velocity = ToNextPositionNormalized * 20f / RotationSpeed;
 				}
 			}
 
@@ -581,7 +591,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 
 
 			// shoots laser things every 2.5 seconds
-			if (SecondStageTimer % 150 == 0 && attack == 0 ) {
+			if (AttackTimer == 0 && attack2 == "laser" ) {
 				foreach (Vector2 direction in Directions) {
 					if (!Main.expertMode) {
 						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer);
@@ -594,20 +604,108 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 					}
 				}
 			}
-			if (SecondStageTimer % 150 == 0 && attack == 1) {
+			if (AttackTimer == 0 && attack2 == "predictive") {
 				PredictiveBeams = 15;
+				NPC.netUpdate = true;
 			}
 
-			if (SecondStageTimer % 150 == 0 && attack == 2) {
+			if (AttackTimer == 0 && attack2 == "dash") {
 				DashAttack = true;
 				NPC.netUpdate = true;
 			}
 
-			if (SecondStageTimer % 150 == 0) {
-				attack++;
-				if (attack > 2) {
-					attack = 0;
+			if (AttackTimer == 0 && attack2 == "ushape") {
+				UShapeAttack = true;
+				UShapeDirection = Main.rand.Next(0, 2);
+
+				if (UShapeDirection == 0) {
+					ProjectileProgression = -800;
+				}	
+				else {
+					ProjectileProgression = 800;
 				}
+
+				NPC.netUpdate = true;
+			}
+
+			if (UShapeAttack) {
+
+				if (UShapeDirection == 0) {
+					if (ProjectileProgression < 800 && SecondStageTimer % 3 == 0) {
+						ProjectileProgression += 50;
+						int ProjectileXValue = ProjectileProgression + (int)player.Center.X;
+						int ProjectileYValue = (int)(-0.0016f * (float)Math.Pow(ProjectileProgression, 2) + player.Center.Y + 1200f);
+
+						if (!Main.expertMode) {
+							Projectile.NewProjectile(NPC.GetSource_FromAI(), new Vector2 (ProjectileXValue, ProjectileYValue), Vector2.Normalize(player.Center - new Vector2 (ProjectileXValue, ProjectileYValue)) * BeamSpeed * 0.66f, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer, 60f);
+						}
+						else if (!Main.masterMode) {
+							Projectile.NewProjectile(NPC.GetSource_FromAI(), new Vector2 (ProjectileXValue, ProjectileYValue), Vector2.Normalize(player.Center - new Vector2 (ProjectileXValue, ProjectileYValue)) * BeamSpeed * 0.66f, type, (int)(NPC.damage * 0.4 * 0.5), 5f, Main.myPlayer, 60f);
+						}
+						else {
+							Projectile.NewProjectile(NPC.GetSource_FromAI(), new Vector2 (ProjectileXValue, ProjectileYValue), Vector2.Normalize(player.Center - new Vector2 (ProjectileXValue, ProjectileYValue)) * BeamSpeed * 0.66f, type, (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer, 60f);
+						}
+							
+					}
+
+					else if (ProjectileProgression >= 800) {
+						UShapeAttack = false;
+					}
+				}
+
+				else {
+					if (ProjectileProgression > -800 && SecondStageTimer % 2 == 0) {
+						ProjectileProgression -= 50;
+						int ProjectileXValue = ProjectileProgression + (int)player.Center.X;
+						int ProjectileYValue = (int)(-0.0016f * (float)Math.Pow(ProjectileProgression, 2) + player.Center.Y + 1200f);
+						
+						if (!Main.expertMode) {
+							Projectile.NewProjectile(NPC.GetSource_FromAI(), new Vector2 (ProjectileXValue, ProjectileYValue), Vector2.Normalize(player.Center - new Vector2 (ProjectileXValue, ProjectileYValue)) * BeamSpeed * 0.66f, type, (int)(NPC.damage * 0.4), 5f, Main.myPlayer, 60f);
+						}
+						else if (!Main.masterMode) {
+							Projectile.NewProjectile(NPC.GetSource_FromAI(), new Vector2 (ProjectileXValue, ProjectileYValue), Vector2.Normalize(player.Center - new Vector2 (ProjectileXValue, ProjectileYValue)) * BeamSpeed * 0.66f, type, (int)(NPC.damage * 0.4 * 0.5), 5f, Main.myPlayer, 60f);
+						}
+						else {
+							Projectile.NewProjectile(NPC.GetSource_FromAI(), new Vector2 (ProjectileXValue, ProjectileYValue), Vector2.Normalize(player.Center - new Vector2 (ProjectileXValue, ProjectileYValue)) * BeamSpeed * 0.66f, type, (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer, 60f);
+						}
+					}
+
+					else if (ProjectileProgression >= 800) {
+						UShapeAttack = false;
+					}
+				}
+				
+			}
+
+			if (AttackTimer == 0) {
+
+				if (attack2 == "laser") {
+					AttackTimer = 120;
+				}
+
+				else if (attack2 == "predictive") {
+					AttackTimer = 90;
+				}
+
+				else if (attack2 == "dash") {
+					AttackTimer = 180;
+				}
+
+				else if (attack2 == "ushape") {
+					AttackTimer = 210;
+				}
+
+				else {
+					AttackTimer = 120;
+				}
+
+
+
+				AttackCounter++;
+				if (AttackCounter >= AttackList.Length) {
+					AttackCounter = 0;
+				}
+				attack2 = AttackList[AttackCounter];
 			}
 
 			

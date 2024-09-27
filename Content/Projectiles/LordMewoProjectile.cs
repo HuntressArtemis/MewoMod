@@ -43,34 +43,7 @@ namespace MewoMod.Content.Projectiles
 
 		public override void AI() {
 
-			if (Projectile.ai[0] != 0) {	
-				if (HasStartTimer == false) {
-					HomingTimer -= (int)Projectile.ai[0];
-					MaxHomingTimer += 60;
-				}
-
-				Projectile.velocity = Vector2.Zero;
-				Projectile.ai[0]--;
-				HasStartTimer = true;
-				Mod.Logger.Info("StartTimer: " + Projectile.ai[0]);
-
-				Projectile.netUpdate = true;
-			}
-
-
-			if (HasStartTimer && Projectile.ai[0] == 0) {
-				Projectile.velocity = Vector2.Normalize(HomingTarget.Center - Projectile.Center) * Projectile.ai[1];
-				HasStartTimer = false;
-			}
-
 			float maxDetectRadius = 1000f; // The maximum radius at which a projectile can detect a target
-
-			// A short delay to homing behavior after being fired
-			if (DelayTimer < 10) {
-				DelayTimer += 1;
-				Projectile.netUpdate = true;
-				return;
-			}
 
 			// First, we find a homing target if we don't have one
 			if (HomingTarget == null) {
@@ -81,6 +54,34 @@ namespace MewoMod.Content.Projectiles
 			// If we don't have a target, don't adjust trajectory
 			if (HomingTarget == null)
 				return;
+
+			if (Projectile.ai[0] != 0) {	
+				if (HasStartTimer == false) {
+					HomingTimer -= (int)Projectile.ai[0];
+					MaxHomingTimer += 60;
+				}
+
+				Projectile.velocity = Vector2.Zero;
+				Projectile.ai[0]--;
+				HasStartTimer = true;
+
+				Projectile.netUpdate = true;
+			}
+
+
+			if (HasStartTimer && Projectile.ai[0] == 0) {
+				Projectile.velocity = Vector2.Normalize(HomingTarget.Center - Projectile.Center) * Projectile.ai[1];
+				HasStartTimer = false;
+			}
+
+
+			// A short delay to homing behavior after being fired
+			if (DelayTimer < 10) {
+				DelayTimer += 1;
+				Projectile.netUpdate = true;
+				return;
+			}
+
 
 			// If found, we rotate the projectile velocity in the direction of the target.
 			// We only rotate by 3 degrees an update to give it a smooth trajectory. Increase the rotation speed here to make tighter turns
@@ -128,5 +129,6 @@ namespace MewoMod.Content.Projectiles
 			// 7. doesn't have solid tiles blocking a line of sight between the projectile and NPC
 			return Collision.CanHit(Projectile.Center, 1, 1, target.position, target.width, target.height);
 		}
+		public override bool CanHitPlayer(Player target) => !HasStartTimer;
 	}
 }

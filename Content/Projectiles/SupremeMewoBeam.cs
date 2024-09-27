@@ -13,15 +13,19 @@ namespace MewoMod.Content.Projectiles
 
         public float TelegraphDelay
         {
-            get => Projectile.ai[0];
-            set => Projectile.ai[0] = value;
+            get => Projectile.ai[1];
+            set => Projectile.ai[1] = value;
         }
 
         public Vector2 OldVelocity;
-        public const float TelegraphTotalTime = 35f;
+        
         public const float TelegraphFadeTime = 5f;
         public const float TelegraphWidth = 2400f;
         public const float FadeTime = 20f;
+        public float TelegraphTotalTime = 35f;
+
+        
+
 
         public override void SetStaticDefaults()
         {
@@ -39,6 +43,9 @@ namespace MewoMod.Content.Projectiles
             Projectile.penetrate = -1;
             Projectile.timeLeft = 600;
             CooldownSlot = ImmunityCooldownID.Bosses;
+
+            TelegraphTotalTime = 35f;
+
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -55,10 +62,15 @@ namespace MewoMod.Content.Projectiles
         {
             // Determine the relative opacities for each player based on their distance.
             // This has a lower bound of 0.35 to prevent the laser from going completely invisible and players getting hit by cheap shots.
-            if (Projectile.localAI[0] == 0f)
+            if (Projectile.localAI[2] == 0f)
             {
-                Projectile.localAI[0] = 1f;
+                Projectile.localAI[2] = 1f;
                 Projectile.netUpdate = true;
+            }
+
+            if (Projectile.ai[0] != 0f) {
+                TelegraphTotalTime = Projectile.ai[0];
+                Projectile.ai[0] = 0f;
             }
 
             // Fade in after telegraphs have faded.
