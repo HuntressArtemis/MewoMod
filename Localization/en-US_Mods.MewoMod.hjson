@@ -74,6 +74,16 @@ Items: {
 		DisplayName: Lord Mewo Relic
 		Tooltip: ""
 	}
+
+	SuspiciousLookingCat: {
+		DisplayName: Suspicious Looking Cat
+		Tooltip: Summons Lord Mewo
+	}
+
+	SuperSuspiciousLookingCat: {
+		Tooltip: Summons Supreme Mewo
+		DisplayName: Super Suspicious Looking Cat
+	}
 }
 
 Buffs: {
@@ -91,16 +101,11 @@ WorldGen: {
 }
 
 NPCs: {
-	MewoBossBody.DisplayName: Mewo Boss Body
 	LordMewo.DisplayName: Lord Mewo
 	SupremeMewo.DisplayName: Supreme Mewo
 }
 
 Projectiles: {
 	LordMewoProjectile.DisplayName: Lord Mewo Projectile
-
-	Boss: {
-		DoGDeath.DisplayName: Do G Death
-		SupremeMewoBeam.DisplayName: Supreme Mewo Beam
-	}
+	Boss.SupremeMewoBeam.DisplayName: Supreme Mewo Beam
 }
