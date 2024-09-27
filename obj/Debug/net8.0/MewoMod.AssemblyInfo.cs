@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MewoMod")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7df79b13a4059728ce21e8e939435ac18a740888")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+036bc1ea9e1eb5aaa14ad819216c974f497c64b8")]
 [assembly: System.Reflection.AssemblyProductAttribute("MewoMod")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MewoMod")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
