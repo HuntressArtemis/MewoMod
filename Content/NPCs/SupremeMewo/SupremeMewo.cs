@@ -84,8 +84,8 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			NPC.width = 168;
 			NPC.height = 100;
 			NPC.defense = 65;
-			NPC.lifeMax = 70000;
-			NPC.damage = 120;
+			NPC.lifeMax = 60000;
+			NPC.damage = 100;
 
 
 
@@ -520,7 +520,8 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 
 			// dashing
 			if (DashAttack) {
-				RotationSpeed = 0.5f;
+				RotationSpeed = 0.6f;
+				NPC.netUpdate = true;
 			}
 
 
@@ -568,6 +569,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			if (Dashing != true) {
 				if (ToNextPosition.Length() <= 20f) {
 					NPC.velocity = ToNextPositionNormalized * 20f * ToNextPosition.Length() / 20f / RotationSpeed;
+					NPC.netUpdate = true;
 				}
 				else {
 					NPC.velocity = ToNextPositionNormalized * 20f / RotationSpeed;
@@ -581,6 +583,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			Vector2 ToClosestCirclePosition = ClosestCirclePosition - NPC.Center;
 			if (ToClosestCirclePosition.Length() < ToNextPosition.Length() - 200f) {
 				rotationTimer = ToNPCRotation;
+				NPC.netUpdate = true;
 			}
 
 			int type = ModContent.ProjectileType<SupremeMewoBeam>();
@@ -590,7 +593,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			Vector2[] Directions = {new Vector2 (0, -1), new Vector2 (1, -1), new Vector2 (1, 0), new Vector2 (1, -1), new Vector2 (0, -1), new Vector2 (-1, -1), new Vector2 (-1, 0), new Vector2 (-1, 1)};
 
 
-			// shoots laser things every 2.5 seconds
+			// shoots laser things 
 			if (AttackTimer == 0 && attack2 == "laser" ) {
 				foreach (Vector2 direction in Directions) {
 					if (!Main.expertMode) {
@@ -603,6 +606,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 						Projectile.NewProjectile(NPC.GetSource_FromAI(), player.Center - direction * BeamDistance, direction * BeamSpeed, type, (int)(NPC.damage * 0.4 * 0.33), 5f, Main.myPlayer);
 					}
 				}
+				NPC.netUpdate = true;
 			}
 			if (AttackTimer == 0 && attack2 == "predictive") {
 				PredictiveBeams = 15;
@@ -619,10 +623,10 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 				UShapeDirection = Main.rand.Next(0, 2);
 
 				if (UShapeDirection == 0) {
-					ProjectileProgression = -800;
+					ProjectileProgression = -1100;
 				}	
 				else {
-					ProjectileProgression = 800;
+					ProjectileProgression = 1100;
 				}
 
 				NPC.netUpdate = true;
@@ -631,7 +635,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 			if (UShapeAttack) {
 
 				if (UShapeDirection == 0) {
-					if (ProjectileProgression < 800 && SecondStageTimer % 3 == 0) {
+					if (ProjectileProgression < 1100 && SecondStageTimer % 3 == 0) {
 						ProjectileProgression += 50;
 						int ProjectileXValue = ProjectileProgression + (int)player.Center.X;
 						int ProjectileYValue = (int)(-0.0016f * (float)Math.Pow(ProjectileProgression, 2) + player.Center.Y + 1200f);
@@ -648,13 +652,14 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 							
 					}
 
-					else if (ProjectileProgression >= 800) {
+					else if (ProjectileProgression >= 1100) {
 						UShapeAttack = false;
 					}
+					NPC.netUpdate = true;
 				}
 
 				else {
-					if (ProjectileProgression > -800 && SecondStageTimer % 2 == 0) {
+					if (ProjectileProgression > -1100 && SecondStageTimer % 2 == 0) {
 						ProjectileProgression -= 50;
 						int ProjectileXValue = ProjectileProgression + (int)player.Center.X;
 						int ProjectileYValue = (int)(-0.0016f * (float)Math.Pow(ProjectileProgression, 2) + player.Center.Y + 1200f);
@@ -670,9 +675,10 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 						}
 					}
 
-					else if (ProjectileProgression >= 800) {
+					else if (ProjectileProgression >= 1100) {
 						UShapeAttack = false;
 					}
+					NPC.netUpdate = true;
 				}
 				
 			}
@@ -706,6 +712,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 					AttackCounter = 0;
 				}
 				attack2 = AttackList[AttackCounter];
+				NPC.netUpdate = true;
 			}
 
 			
@@ -724,6 +731,7 @@ namespace MewoMod.Content.NPCs.SupremeMewo
 					}
 	
 				PredictiveBeams--;
+				NPC.netUpdate = true;
 			}
 				
 		
